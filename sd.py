@@ -1,30 +1,35 @@
-import cv2
+import sys
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QPushButton, QWidget
 
-def save_first_frame(video_path, output_path):
-    # Open the video file
-    cap = cv2.VideoCapture(video_path)
 
-    # Check if the video opened successfully
-    if not cap.isOpened():
-        print("Error: Could not open video.")
-        return
+class MainWindow(QMainWindow):
 
-    # Read the first frame
-    ret, frame = cap.read()
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle('My App')
+        
+        # Cannot set QxxLayout directly on the QMainWindow
+        # Need to create a QWidget and set it as the central widget
+        widget = QWidget()
+        layout = QVBoxLayout()
+        b1 = QPushButton('Red'   ); b1.setStyleSheet("background-color: red;")
+        b2 = QPushButton('Blue'  ); b2.setStyleSheet("background-color: blue;")
+        b3 = QPushButton('Yellow'); b3.setStyleSheet("background-color: yellow;")
+        layout.addWidget(b1)
+        layout.addWidget(b2)
+        layout.addWidget(b3)
+            
+        widget.setLayout(layout)
+        self.setCentralWidget(widget)
 
-    # Check if the frame was read successfully
-    if not ret:
-        print("Error: Could not read frame.")
-        return
 
-    # Save the first frame as an image
-    cv2.imwrite(output_path, frame)
-    print("First frame saved as", output_path)
+def main():
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec_())
 
-    # Release the video capture object
-    cap.release()
 
-if __name__ == "__main__":
-    video_path = input("Enter the path to the video file: ")
-    output_path = input("Enter the path to save the first frame (include file extension): ")
-    save_first_frame(video_path, output_path)
+if __name__ == '__main__':
+    main()

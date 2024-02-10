@@ -1,7 +1,7 @@
 # import module 
 import sys, cv2, datetime, win32gui, win32con
 from PyQt5.QtCore import Qt, pyqtSlot, QUrl, QTimer, QDate, QTime
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget, QDesktopWidget
 from PyQt5.QtMultimedia import QAudioOutput, QMediaContent, QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 filename = "loopGrass.mp4"
@@ -23,9 +23,6 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         now = QDate.currentDate()
-        month = now.currentDate().shortMonthName(now.month(), now.MonthNameType.DateFormat)
-        day = now.currentDate().shortDayName(now.day(), now.MonthNameType.StandaloneFormat)
-        year = now.currentDate().year()
         self._audio_output = QAudioOutput()
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.active)
@@ -38,19 +35,42 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self._video_widget)
         self._player.setVideoOutput(self._video_widget)
         self.open()
-        print("d", now.toString(Qt.DefaultLocaleLongDate))
-        self.timeTextW = QMainWindow(flags=Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnBottomHint)
-        self.timeTextW.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.timeText = QLabel()
-        self.timeTextW.setGeometry(self.timeText.geometry())
-        self.timeText.setParent(self.timeTextW)
-        self.timeTextW.show()
-        self.timeText.setText(now.currentDate().shortMonthName(now.month(), now.MonthNameType.DateFormat))
-        self.timeText.resize(len(self.timeText.text())*19+22, len(self.timeText.text())*112)
-        self.timeText.setStyleSheet("font: bold; font-size:34px; color:white; font-family: 'Game of squids';")
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint, True)
         self.setWindowFlag(Qt.WindowType.WindowStaysOnBottomHint, True)
         self.setWindowFlag(Qt.WindowType.WindowTransparentForInput, True)
+        self.setWindowFlag(Qt.WindowType.Tool, True)
+        print("d", now.toString(Qt.DefaultLocaleLongDate))
+        self.timeTextW = QMainWindow(flags=Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnBottomHint | Qt.WindowType.Tool)
+        self.timeTextW.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.timer2 = QTimer(self.timeTextW)
+        self.timer2.start(60000)
+        mainwidget = QWidget()
+        layout = QVBoxLayout()
+        self.timeText = QLabel()
+        self.DateText = QLabel()
+        self.timer2.timeout.connect(self.CHANGETIME)
+        self.timeTextW.setGeometry(self.timeText.geometry())
+        self.timeText.setParent(self.timeTextW)
+        self.DateText.setParent(self.timeTextW)
+        self.timeText.setText(str(QTime.currentTime().hour()) + ":" + str(QTime.currentTime().minute()))
+        self.DateText.setText(now.toString(Qt.DateFormat.DefaultLocaleLongDate))
+        self.DateText.adjustSize()
+        self.timeText.adjustSize()
+        self.timeTextW.adjustSize()
+        mainwidget.adjustSize()
+        self.timeText.setStyleSheet("font: bold; font-size:54px; color:white; font-family: 'Game of squids'; margin-left:50%; margin-")
+        self.DateText.setStyleSheet("font: bold; font-size:28px; color:white; font-family: 'Game of squids';")
+        layout.addWidget(self.timeText)
+        layout.addWidget(self.DateText)
+        mainwidget.setLayout(layout)
+        self.timeTextW.setCentralWidget(mainwidget)
+        width = QDesktopWidget().width()
+        height = QDesktopWidget().height()
+        # self.timeTextW.geometry().setX(444)
+        mainwidget.geometry().setX(width//2)
+        mainwidget.geometry().setY(height//2)
+        # self.timeTextW.geometry().setY(123)
+        self.timeTextW.show()
 
         print(now.currentDate().toString()) 
         print(str(QTime.currentTime().hour()) + ":" + str(QTime.currentTime().minute()) )
@@ -81,6 +101,9 @@ class MainWindow(QMainWindow):
             win32gui.SetFocus(taskbar)
             win32gui.ShowWindow(taskbar, win32con.SWP_SHOWWINDOW)
 
+    def CHANGETIME(self):
+        self.timeText.setText(str(QTime.currentTime().hour()) + ":" + str(QTime.currentTime().minute()))
+        self.DateText.setText(QDate.currentDate().toString(Qt.DateFormat.DefaultLocaleLongDate))
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
