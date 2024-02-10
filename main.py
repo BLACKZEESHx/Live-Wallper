@@ -1,11 +1,9 @@
 # import module 
 import sys, cv2, datetime, win32gui, win32con
-from PyQt5.QtCore import Qt, pyqtSlot, QUrl, QTimer, QDate
-from PyQt5.QtGui import QFont, QPixmap
-from PyQt5.QtWidgets import QApplication, QMainWindow, QDesktopWidget, QWidget, QLabel
+from PyQt5.QtCore import Qt, pyqtSlot, QUrl, QTimer, QDate, QTime
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
 from PyQt5.QtMultimedia import QAudioOutput, QMediaContent, QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
-    
 filename = "loopGrass.mp4"
 # create video capture object 
 data = cv2.VideoCapture(filename) 
@@ -24,6 +22,10 @@ print(f"video time: {video_time}")
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        now = QDate.currentDate()
+        month = now.currentDate().shortMonthName(now.month(), now.MonthNameType.DateFormat)
+        day = now.currentDate().shortDayName(now.day(), now.MonthNameType.StandaloneFormat)
+        year = now.currentDate().year()
         self._audio_output = QAudioOutput()
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.active)
@@ -36,7 +38,6 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self._video_widget)
         self._player.setVideoOutput(self._video_widget)
         self.open()
-        now = QDate.currentDate()
         print("d", now.toString(Qt.DefaultLocaleLongDate))
         self.timeTextW = QMainWindow(flags=Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnBottomHint)
         self.timeTextW.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
@@ -44,14 +45,15 @@ class MainWindow(QMainWindow):
         self.timeTextW.setGeometry(self.timeText.geometry())
         self.timeText.setParent(self.timeTextW)
         self.timeTextW.show()
-        
-        self.timeText.setText(now.toString(Qt.DefaultLocaleLongDate))
-        self.timeText.resize(len(self.timeText.text())*18+22, len(self.timeText.text())*2)
-        self.timeText.setStyleSheet("font: bold; font-size:34px; color:white;")
+        self.timeText.setText(now.currentDate().shortMonthName(now.month(), now.MonthNameType.DateFormat))
+        self.timeText.resize(len(self.timeText.text())*19+22, len(self.timeText.text())*112)
+        self.timeText.setStyleSheet("font: bold; font-size:34px; color:white; font-family: 'Game of squids';")
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint, True)
         self.setWindowFlag(Qt.WindowType.WindowStaysOnBottomHint, True)
         self.setWindowFlag(Qt.WindowType.WindowTransparentForInput, True)
 
+        print(now.currentDate().toString()) 
+        print(str(QTime.currentTime().hour()) + ":" + str(QTime.currentTime().minute()) )
     @pyqtSlot()
     def open(self, url=QUrl(filename)):
         self._player.setMedia(QMediaContent(url))
