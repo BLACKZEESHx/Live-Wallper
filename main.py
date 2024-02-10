@@ -24,8 +24,6 @@ print(f"video time: {video_time}")
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        # self.image = QPixmap(image_path)
-        # self.timeText.setPixmap(self.image)
         self._audio_output = QAudioOutput()
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.active)
@@ -40,49 +38,19 @@ class MainWindow(QMainWindow):
         self.open()
         now = QDate.currentDate()
         print("d", now.toString(Qt.DefaultLocaleLongDate))
-        self.timeText = QLabel(self)
-        image_path = "image.jpg"
-        self.timeText.setStyleSheet("font: bold; font-size:34px; color:white; background-image: url('image.jpg'); background-repeat: no-repeat")
+        self.timeTextW = QMainWindow(flags=Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnBottomHint)
+        self.timeTextW.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.timeText = QLabel()
+        self.timeTextW.setGeometry(self.timeText.geometry())
+        self.timeText.setParent(self.timeTextW)
+        self.timeTextW.show()
+        
         self.timeText.setText(now.toString(Qt.DefaultLocaleLongDate))
         self.timeText.resize(len(self.timeText.text())*18+22, len(self.timeText.text())*2)
-        self.save_first_frame(filename, image_path)
+        self.timeText.setStyleSheet("font: bold; font-size:34px; color:white;")
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint, True)
         self.setWindowFlag(Qt.WindowType.WindowStaysOnBottomHint, True)
         self.setWindowFlag(Qt.WindowType.WindowTransparentForInput, True)
-
-    def save_first_frame(self, video_path, output_path):
-        # Open the video file
-        cap = cv2.VideoCapture(video_path)
-
-        # Check if the video opened successfully
-        if not cap.isOpened():
-            print("Error: Could not open video.")
-            return
-
-        # Read the first frame
-        ret, frame = cap.read()
-        x, y = 860, 530  # Top-left corner
-        width, height = self.timeText.geometry().width(), self.timeText.geometry().height()  # Width and height of the region
-        # Crop the image from the top-left corner to the end
-        crop = frame[y+y:height, x+x:width]
-        # Crop the image using array slicing
-        # crop = frame[:height, :width]
-
-        # resizedFrame = cv2.resize(frame, (32, 22), interpolation=cv2.INTER_AREA)
-
-        # Check if the frame was read successfully
-        if not ret:
-            print("Error: Could not read frame.")
-            return
-
-        # Save the first frame as an image
-        cv2.imwrite(output_path, crop)
-        print("First frame saved as", output_path)
-
-        # Release the video capture object
-        cap.release()
-        # Load the image
-
 
     @pyqtSlot()
     def open(self, url=QUrl(filename)):
