@@ -1,29 +1,45 @@
 package main
 
 import (
-	"fmt"
+	"os"
 
-	"fyne.io/fyne/v2/app"
-	"fyne.io/fyne/v2/media"
+	"github.com/therecipe/qt/core"
+	"github.com/therecipe/qt/multimedia"
+	"github.com/therecipe/qt/widgets"
 )
 
 func main() {
-	a := app.New()
-	w := a.NewWindow("Video Player")
+	// Initialize the application
+	app := widgets.NewQApplication(len(os.Args), os.Args)
 
-	// Create a media player widget
-	player := media.NewPlayer()
+	// Create the main window
+	window := widgets.NewQMainWindow(nil, 0)
+	window.SetWindowTitle("Video Player")
+	window.SetMinimumSize2(800, 600)
+
+	// Create a video widget
+	videoWidget := multimedia.NewQVideoWidget(nil)
+	window.SetCentralWidget(videoWidget)
+
+	// Create a media player
+	player := multimedia.NewQMediaPlayer(nil, multimedia.QMediaPlayer__VideoSurface)
+	player.SetVideoOutput(videoWidget)
 
 	// Load the video file
-	err := player.Load("path/to/video.mp4")
-	if err != nil {
-		fmt.Println("Error loading video:", err)
-		return
+	fileName := core.NewQFile2("video.mp4")
+	fileName.Open(core.QIODevice__ReadOnly)
+	if fileName.IsOpen() {
+		// mediaContent := multimedia.NewQMediaContent()
+		// player.SetMedia(mediaContent)
+		player.SetVideoOutput(videoWidget)
+		player.Play()
+	} else {
+		widgets.QMessageBox_Critical(nil, "Error", "Failed to open video file", widgets.QMessageBox__Ok, widgets.QMessageBox__NoButton)
 	}
 
-	// Add the media player to the window
-	w.SetContent(player)
+	// Show the main window
+	window.Show()
 
-	// Show the window
-	w.ShowAndRun()
+	// Execute the application
+	app.Exec()
 }

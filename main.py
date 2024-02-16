@@ -1,9 +1,15 @@
 # import module 
-import sys, cv2, datetime, win32gui, win32con
-from PyQt5.QtCore import Qt, pyqtSlot, QUrl, QTimer, QDate, QTime
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QWidget, QDesktopWidget
+import sys, cv2, datetime, win32gui, win32con, random
+from PyQt5.QtCore import Qt, pyqtSlot, QUrl, QTimer
+from PyQt5.QtWidgets import QApplication, QMainWindow,QWidget, QDesktopWidget, QGraphicsBlurEffect
 from PyQt5.QtMultimedia import QAudioOutput, QMediaContent, QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
+from pyautogui import position
+from PyQt5.QtGui import QColor
+from sd import TimeWindow
+from test import Circle
+
+
 filename = "loopGrass.mp4"
 # create video capture object 
 data = cv2.VideoCapture(filename) 
@@ -19,95 +25,71 @@ print(f"duration in seconds: {seconds}")
 print(f"video time: {video_time}") 
 
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        now = QDate.currentDate()
-        self._audio_output = QAudioOutput()
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.active)
-        self.timer.start(3)
-        self.active()
-        self._player = QMediaPlayer()
-        self._player.setPlaybackRate(1.0)  # Set default playback rate
-        self._player.positionChanged.connect(self.check_position)
-        self._video_widget = QVideoWidget()
-        self.setCentralWidget(self._video_widget)
-        self._player.setVideoOutput(self._video_widget)
-        self.open()
-        self.setWindowFlag(Qt.WindowType.FramelessWindowHint, True)
-        self.setWindowFlag(Qt.WindowType.WindowStaysOnBottomHint, True)
-        self.setWindowFlag(Qt.WindowType.WindowTransparentForInput, True)
-        self.setWindowFlag(Qt.WindowType.Tool, True)
-        print("d", now.toString(Qt.DefaultLocaleLongDate))
-        self.timeTextW = QMainWindow(flags=Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnBottomHint | Qt.WindowType.Tool)
-        self.timeTextW.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.timer2 = QTimer(self.timeTextW)
-        self.timer2.start(60000)
-        mainwidget = QWidget()
-        layout = QVBoxLayout()
-        self.timeText = QLabel()
-        self.DateText = QLabel()
-        self.timer2.timeout.connect(self.CHANGETIME)
-        self.timeTextW.setGeometry(self.timeText.geometry())
-        self.timeText.setParent(self.timeTextW)
-        self.DateText.setParent(self.timeTextW)
-        self.timeText.setText(str(QTime.currentTime().hour()) + ":" + str(QTime.currentTime().minute()))
-        self.DateText.setText(now.toString(Qt.DateFormat.DefaultLocaleLongDate))
-        self.DateText.adjustSize()
-        self.timeText.adjustSize()
-        self.timeTextW.adjustSize()
-        mainwidget.adjustSize()
-        self.timeText.setStyleSheet("font: bold; font-size:54px; color:white; font-family: 'Game of squids'; margin-left:50%; margin-")
-        self.DateText.setStyleSheet("font: bold; font-size:28px; color:white; font-family: 'Game of squids';")
-        layout.addWidget(self.timeText)
-        layout.addWidget(self.DateText)
-        mainwidget.setLayout(layout)
-        self.timeTextW.setCentralWidget(mainwidget)
         width = QDesktopWidget().width()
         height = QDesktopWidget().height()
-        # self.timeTextW.geometry().setX(444)
-        mainwidget.geometry().setX(width//2)
-        mainwidget.geometry().setY(height//2)
-        # self.timeTextW.geometry().setY(123)
-        self.timeTextW.show()
+        self._audio_output = QAudioOutput()
+        # self.timer = QTimer(self)
+        # self.timer.timeout.connect(self.active)
+        # self.timer.start(3000)
+        self.player = QMediaPlayer()
+        # self.active()
+        self.player.setPlaybackRate(1.0)  # Set default playback rate
+        self.player.positionChanged.connect(self.check_position)
+        self._video_widget = QVideoWidget()
+        self.setCentralWidget(self._video_widget)
+        self.player.setVideoOutput(self._video_widget)
+        self.open()
+        self.setWindowFlag(Qt.WindowType.FramelessWindowHint, True)
+        self.setWindowFlag(Qt.WindowType.WindowStaysOnBottomHint, False)
+        self.setWindowFlag(Qt.WindowType.WindowTransparentForInput, True)
+        self.setWindowFlag(Qt.WindowType.Tool, True)
+        # print(str(QTime.currentTime().hour()) + ":" + str(QTime.currentTime().minute()) )
 
-        print(now.currentDate().toString()) 
-        print(str(QTime.currentTime().hour()) + ":" + str(QTime.currentTime().minute()) )
-    @pyqtSlot()
     def open(self, url=QUrl(filename)):
-        self._player.setMedia(QMediaContent(url))
-        self._player.play()
+        self.player.setMedia(QMediaContent(url))
+        self.player.play()
 
     @pyqtSlot()
     def check_position(self):
         # Check if the video has reached its end
-        if self._player.state() == QMediaPlayer.State.StoppedState:
-            self._player.setPosition(0)  # Seek back to the beginning
-            self._player.play()
+        if self.player.state() == QMediaPlayer.State.StoppedState:
+            self.player.setPosition(0)  # Seek back to the beginning
+            self.player.play()
 
     def show_status_message(self, message):
         self.statusBar().showMessage(message, 5000)
 
     @pyqtSlot("QMediaPlayer::Error", str)
-    def _player_error(self, error, error_string):
+    def player_error(self, error, error_string):
         print(error_string, file=sys.stderr)
         self.show_status_message(error_string)
 
-    def active(self):
-        forground = win32gui.GetForegroundWindow()
-        if forground == self.winId():
-            taskbar = win32gui.FindWindow("Shell_TrayWnd", None)
-            win32gui.SetFocus(taskbar)
-            win32gui.ShowWindow(taskbar, win32con.SWP_SHOWWINDOW)
+    # def active(self):
+    #     print(int(self.winId()))
+    #     forground = win32gui.GetForegroundWindow()
+    #     taskbar = win32gui.FindWindow("Shell_TrayWnd", None)
+    #     if forground == int(self.winId()) or forground == taskbar:
+    #     # if forground == int(self.winId()):
 
-    def CHANGETIME(self):
-        self.timeText.setText(str(QTime.currentTime().hour()) + ":" + str(QTime.currentTime().minute()))
-        self.DateText.setText(QDate.currentDate().toString(Qt.DateFormat.DefaultLocaleLongDate))
+    #         win32gui.ShowWindow(taskbar, win32con.SW_FORCEMINIMIZE)
+    #         # win32gui.SetActiveWindow(int(self.winId()))
+    #     # else:
+    #     #     self.player.pause()
+
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     main_win = MainWindow()
     main_win.showFullScreen()
+    time = TimeWindow()
+    time.show()
+    circle = Circle()
+    circle.showFullScreen()
+    main_win.setWindowFlag(Qt.WindowType.WindowStaysOnBottomHint, True)
     
     sys.exit(app.exec())
