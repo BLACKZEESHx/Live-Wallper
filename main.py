@@ -1,37 +1,48 @@
-# import module 
+# import module
 import sys, cv2, datetime, win32gui, win32con, random
 from PyQt5.QtCore import Qt, pyqtSlot, QUrl, QTimer
-from PyQt5.QtWidgets import QApplication, QMainWindow,QWidget, QDesktopWidget, QGraphicsBlurEffect
+from PyQt5.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QWidget,
+    QDesktopWidget,
+    QGraphicsBlurEffect,
+)
 from PyQt5.QtMultimedia import QAudioOutput, QMediaContent, QMediaPlayer
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 from pyautogui import position
 from PyQt5.QtGui import QColor
 from sd import TimeWindow
-from test import Circle
+
+# from test import Circle
 
 
-filename = "loopGrass.mp4"
-# create video capture object 
-data = cv2.VideoCapture(filename) 
+# filename = "loopGrass.mp4"
+# filename = "3ds.mp4"
+filename = "bmw-m4-night-rain-moewalls-com.mp4"
+# create video capture object
+data = cv2.VideoCapture(filename)
 
-# count the number of frames 
-frames = data.get(cv2.CAP_PROP_FRAME_COUNT) 
-fps = data.get(cv2.CAP_PROP_FPS) 
+# count the number of frames
+frames = data.get(cv2.CAP_PROP_FRAME_COUNT)
+fps = data.get(cv2.CAP_PROP_FPS)
 
-# calculate duration of the video 
+# calculate duration of the video
 seconds = round(frames / fps)
-video_time = datetime.timedelta(seconds=seconds) 
-print(f"duration in seconds: {seconds}") 
-print(f"video time: {video_time}") 
-
+video_time = datetime.timedelta(seconds=seconds)
+print(f"duration in seconds: {seconds}")
+print(f"video time: {video_time}")
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
-        super().__init__()
+        super().__init__(
+            flags=Qt.WindowType.WindowStaysOnBottomHint
+            | Qt.WindowType.WindowTransparentForInput
+        )
         width = QDesktopWidget().width()
         height = QDesktopWidget().height()
-        self._audio_output = QAudioOutput()
+        # self._audio_output = QAudioOutput()
         # self.timer = QTimer(self)
         # self.timer.timeout.connect(self.active)
         # self.timer.start(3000)
@@ -47,11 +58,17 @@ class MainWindow(QMainWindow):
         self.setWindowFlag(Qt.WindowType.WindowStaysOnBottomHint, False)
         self.setWindowFlag(Qt.WindowType.WindowTransparentForInput, True)
         self.setWindowFlag(Qt.WindowType.Tool, True)
+        self.timew = TimeWindow()
+        self.timew.show()
+
         # print(str(QTime.currentTime().hour()) + ":" + str(QTime.currentTime().minute()) )
 
     def open(self, url=QUrl(filename)):
         self.player.setMedia(QMediaContent(url))
         self.player.play()
+        self.player.setVolume(0)
+
+        # self.player.
 
     @pyqtSlot()
     def check_position(self):
@@ -81,15 +98,13 @@ class MainWindow(QMainWindow):
     #     #     self.player.pause()
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     main_win = MainWindow()
+    # main_win.setWindowFlag()
     main_win.showFullScreen()
-    time = TimeWindow()
-    time.show()
-    circle = Circle()
-    circle.showFullScreen()
-    main_win.setWindowFlag(Qt.WindowType.WindowStaysOnBottomHint, True)
-    
+    main_win.timew.raise_()
+    # circle = Circle()
+    # circle.showFullScreen()
+
     sys.exit(app.exec())
